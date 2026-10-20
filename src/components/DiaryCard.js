@@ -1,29 +1,51 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
-import { COLORS, SPACE, RADIUS, SIZE, TYPO, INTERACTION } from '../styles/tokens';
+import {
+  COLORS,
+  SPACE,
+  RADIUS,
+  SIZE,
+  TYPO,
+  INTERACTION,
+} from '../styles/tokens';
 
-export default function DiaryCard({ title, date, preview, moodUri, onPress, variant = 'list' }) {
+export default function DiaryCard({
+  title,
+  date,
+  preview,
+  moodImage,
+  liked = false,
+  onPress = () => {},
+  onToggleLike = () => {},
+  variant = 'list',
+}) {
   const isGrid = variant === 'grid';
 
   return (
-    <Pressable
-      onPress={onPress}
-      android_ripple={{ color: COLORS.ripple }}
-      style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
-      accessible={Boolean(onPress)}
-      accessibilityRole="button"
-      accessibilityLabel={`Entri ${title} tanggal ${date}`}
-      accessibilityHint="Ketuk dua kali untuk membuka detail diary"
-    >
-      <View style={[styles.card, isGrid && styles.cardGrid]}>
+    <View style={[styles.card, isGrid && styles.cardGrid]}>
+      <Pressable
+        onPress={onPress}
+        android_ripple={{ color: COLORS.ripple }}
+        style={({ pressed }) => [
+          styles.entry,
+          isGrid && styles.entryGrid,
+          pressed && styles.pressed,
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel={`Entri ${title} tanggal ${date}`}
+        accessibilityHint="Ketuk dua kali untuk membuka detail diary"
+      >
         <Image
-          source={{ uri: moodUri }}
+          source={moodImage}
           style={[styles.mood, isGrid && styles.moodGrid]}
           accessibilityLabel={`Ilustrasi mood untuk ${title}`}
         />
 
         <View style={[styles.content, isGrid && styles.contentGrid]}>
-          <Text style={[styles.title, isGrid && styles.centered]} numberOfLines={1}>
+          <Text
+            style={[styles.title, isGrid && styles.centered]}
+            numberOfLines={1}
+          >
             {title}
           </Text>
           <Text style={[styles.date, isGrid && styles.centered]}>{date}</Text>
@@ -35,32 +57,79 @@ export default function DiaryCard({ title, date, preview, moodUri, onPress, vari
             {preview}
           </Text>
         </View>
-      </View>
-    </Pressable>
+      </Pressable>
+
+      <Pressable
+        onPress={onToggleLike}
+        hitSlop={4}
+        style={({ pressed }) => [
+          styles.likeButton,
+          isGrid && styles.likeButtonGrid,
+          pressed && styles.pressed,
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel={liked ? `Batal suka ${title}` : `Suka ${title}`}
+        accessibilityState={{ selected: liked }}
+      >
+        <Text style={[styles.like, liked && styles.liked]}>
+          {liked ? '♥' : '♡'}
+        </Text>
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  pressable: {
+  card: {
+    flexDirection: 'row',
     flex: 1,
     borderRadius: RADIUS.card,
+    borderWidth: SIZE.cardBorderWidth,
+    borderColor: COLORS.border,
+    padding: SPACE.m,
+    gap: SPACE.s,
+    backgroundColor: COLORS.surface,
   },
   pressed: {
     opacity: INTERACTION.pressedOpacity,
   },
-  card: {
-    flexDirection: 'row',
-    gap: SPACE.m,
-    padding: SPACE.m,
-    borderWidth: SIZE.cardBorderWidth,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.card,
-    backgroundColor: COLORS.surface,
-  },
   cardGrid: {
     flexDirection: 'column',
-    alignItems: 'center',
+    alignItems: 'stretch',
     minHeight: SIZE.gridCardMinHeight,
+  },
+  entry: {
+    flexDirection: 'row',
+    gap: SPACE.m,
+    flex: 1,
+    alignItems: 'center',
+  },
+  entryGrid: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
+  content: {
+    flex: 1,
+  },
+  contentGrid: {
+    alignItems: 'center',
+  },
+  likeButton: {
+    minWidth: SIZE.touchTarget,
+    minHeight: SIZE.touchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  likeButtonGrid: {
+    alignSelf: 'flex-end',
+    minHeight: SIZE.touchTarget,
+  },
+  like: {
+    fontSize: TYPO.h1,
+    color: COLORS.muted,
+  },
+  liked: {
+    color: COLORS.like,
   },
   mood: {
     width: SIZE.moodImage,
@@ -69,13 +138,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.imageBackground,
   },
   moodGrid: {
+    alignSelf: 'center',
     marginBottom: SPACE.s,
-  },
-  content: {
-    flex: 1,
-  },
-  contentGrid: {
-    alignItems: 'center',
   },
   title: {
     fontSize: TYPO.title,

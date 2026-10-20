@@ -5,8 +5,10 @@ export const COLORS = {
   muted: '#6B7280',
   accent: '#2563EB',
   onAccent: '#FFFFFF',
+  disabled: '#6B7280',
   imageBackground: '#EEF2FF',
   ripple: '#E5E7EB',
+  like: '#DC2626',
 };
 
 export const SPACE = {

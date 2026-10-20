@@ -20,7 +20,7 @@ import {
 export default function DiaryDetailModal({ visible, onClose, entry }) {
   if (!entry) return null;
 
-  const { title, date, body, heroUri, moodUri } = entry;
+  const { title, date, body, moodImage } = entry;
 
   return (
     <Modal
@@ -35,7 +35,7 @@ export default function DiaryDetailModal({ visible, onClose, entry }) {
         accessibilityViewIsModal
       >
         <Image
-          source={{ uri: heroUri || moodUri }}
+          source={moodImage}
           style={styles.hero}
           accessibilityLabel={`Ilustrasi diary ${title}`}
         />

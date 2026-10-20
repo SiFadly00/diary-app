@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,11 @@ import {
 
 import DiaryCard from '../components/DiaryCard';
 import DiaryDetailModal from '../components/DiaryDetailModal';
+import EntryForm from '../components/EntryForm';
+import SearchBar from '../components/SearchBar';
 import { COLORS, SPACE, TYPO, BREAKPOINTS } from '../styles/tokens';
 
-const DATA = [
+const INITIAL_ENTRIES = [
   {
     id: 1,
     title: 'Pagi yang Tenang',
@@ -19,8 +21,7 @@ const DATA = [
     preview: 'Bangun lebih pagi dan menikmati udara segar.',
     body:
       'Hari ini aku bangun lebih pagi dan berjalan kaki selama 20 menit. Udara terasa sejuk dan suasana pagi sangat tenang.',
-    moodUri: 'https://picsum.photos/seed/happy/200',
-    heroUri: 'https://picsum.photos/seed/happyhero/800/450',
+    moodImage: require('../../assets/moods/happy.png'),
   },
   {
     id: 2,
@@ -29,8 +30,7 @@ const DATA = [
     preview: 'Menyelesaikan modul praktikum bersama tim.',
     body:
       'Hari ini cukup produktif. Saya menyelesaikan modul praktikum dan berdiskusi dengan tim mengenai pengembangan aplikasi.',
-    moodUri: 'https://picsum.photos/seed/focus/200',
-    heroUri: 'https://picsum.photos/seed/focushero/800/450',
+    moodImage: require('../../assets/moods/happy.png'),
   },
   {
     id: 3,
@@ -39,8 +39,7 @@ const DATA = [
     preview: 'Membaca buku sambil menikmati suasana senja.',
     body:
       'Sore ini saya menikmati waktu di taman sambil membaca buku. Suasana senja terasa tenang dan menyenangkan.',
-    moodUri: 'https://picsum.photos/seed/calm/200',
-    heroUri: 'https://picsum.photos/seed/calmhero/800/450',
+    moodImage: require('../../assets/moods/happy.png'),
   },
   {
     id: 4,
@@ -49,8 +48,7 @@ const DATA = [
     preview: 'Mencoba memasak sup sayur untuk makan malam.',
     body:
       'Aku mencoba resep sup sayur baru malam ini. Rasanya lebih enak dari perkiraan, dan memasak membuatku rileks setelah hari yang sibuk.',
-    moodUri: 'https://picsum.photos/seed/cooking/200',
-    heroUri: 'https://picsum.photos/seed/cookinghero/800/450',
+    moodImage: require('../../assets/moods/happy.png'),
   },
   {
     id: 5,
@@ -59,15 +57,48 @@ const DATA = [
     preview: 'Makan malam dan berbagi cerita bersama keluarga.',
     body:
       'Kami makan malam bersama dan saling bercerita tentang kegiatan hari ini. Momen sederhana seperti ini membuatku merasa bersyukur.',
-    moodUri: 'https://picsum.photos/seed/family/200',
-    heroUri: 'https://picsum.photos/seed/familyhero/800/450',
+    moodImage: require('../../assets/moods/happy.png'),
   },
 ];
 
 export default function DiaryListScreen() {
   const { width } = useWindowDimensions();
   const twoCols = width >= BREAKPOINTS.tablet;
+  const [entries, setEntries] = useState(INITIAL_ENTRIES);
+  const [query, setQuery] = useState('');
+  const [likedIds, setLikedIds] = useState(() => new Set());
   const [selected, setSelected] = useState(null);
+  const nextEntryId = useRef(INITIAL_ENTRIES.length + 1);
+
+  const filteredEntries = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return entries;
+
+    return entries.filter((entry) =>
+      [entry.title, entry.date, entry.preview]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedQuery),
+    );
+  }, [entries, query]);
+
+  const toggleLike = (id) => {
+    setLikedIds((previousIds) => {
+      const nextIds = new Set(previousIds);
+      if (nextIds.has(id)) {
+        nextIds.delete(id);
+      } else {
+        nextIds.add(id);
+      }
+      return nextIds;
+    });
+  };
+
+  const addEntry = (entry) => {
+    const newEntry = { ...entry, id: nextEntryId.current };
+    nextEntryId.current += 1;
+    setEntries((currentEntries) => [newEntry, ...currentEntries]);
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.itemWrap}>
@@ -75,8 +106,10 @@ export default function DiaryListScreen() {
         title={item.title}
         date={item.date}
         preview={item.preview}
-        moodUri={item.moodUri}
+        moodImage={item.moodImage}
+        liked={likedIds.has(item.id)}
         variant={twoCols ? 'grid' : 'list'}
+        onToggleLike={() => toggleLike(item.id)}
         onPress={() => setSelected(item)}
       />
     </View>
@@ -90,15 +123,21 @@ export default function DiaryListScreen() {
 
       <FlatList
         key={twoCols ? 'two-columns' : 'one-column'}
-        data={DATA}
+        data={filteredEntries}
         numColumns={twoCols ? 2 : 1}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
         columnWrapperStyle={twoCols ? styles.columnWrapper : undefined}
         contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <View style={styles.listHeader}>
+            <SearchBar onChange={setQuery} />
+            <EntryForm onSubmit={addEntry} />
+          </View>
+        }
         accessibilityLabel="Daftar entri buku harian"
         ListEmptyComponent={
-          <Text style={styles.empty}>Belum ada entri.</Text>
+          <Text style={styles.empty}>Belum ada entri yang cocok.</Text>
         }
       />
 
@@ -125,9 +164,12 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: SPACE.l,
-    paddingTop: SPACE.m,
     gap: SPACE.m,
     flexGrow: 1,
+  },
+  listHeader: {
+    gap: SPACE.m,
+    marginBottom: SPACE.m,
   },
   columnWrapper: {
     gap: SPACE.m,
