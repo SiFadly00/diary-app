@@ -17,8 +17,7 @@ Pindai QR code yang muncul di terminal atau browser menggunakan Expo Go. Pastika
 
 ## Fitur
 
-- Menampilkan lima entri buku harian dengan judul, tanggal, dan ringkasan.
-- Menampilkan ilustrasi mood, termasuk gambar lokal dari `assets/moods`.
-- Menampilkan avatar pengguna pada header.
-- Memberikan variasi warna border dan latar kartu sesuai mood.
-- Menggunakan struktur komponen terpisah untuk layar daftar dan kartu diary.
+- Menampilkan lima entri buku harian dalam daftar satu kolom pada ponsel dan grid dua kolom pada layar dengan lebar minimal 600 px.
+- Membuka detail entri melalui modal saat kartu diary ditekan.
+- Menggunakan design tokens dan `StyleSheet` untuk warna, jarak, tipografi, dan ukuran komponen.
+- Menyediakan label aksesibilitas pada kartu, daftar, gambar, dan tombol modal, serta target sentuh yang memadai.

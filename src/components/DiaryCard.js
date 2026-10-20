@@ -1,93 +1,97 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
+import { COLORS, SPACE, RADIUS, SIZE, TYPO, INTERACTION } from '../styles/tokens';
 
-export default function DiaryCard({ title, date, preview, moodSource, moodType }) {
-  // Menentukan variasi tampilan/style berdasarkan tipe mood
-  let moodStyle = styles.borderDefault;
-  if (moodType === 'happy') moodStyle = styles.borderHappy;
-  if (moodType === 'focus') moodStyle = styles.borderFocus;
-  if (moodType === 'calm') moodStyle = styles.borderCalm;
-  if (moodType === 'sad') moodStyle = styles.borderSad;
-  if (moodType === 'excited') moodStyle = styles.borderExcited;
+export default function DiaryCard({ title, date, preview, moodUri, onPress, variant = 'list' }) {
+  const isGrid = variant === 'grid';
 
   return (
-    <View style={[styles.card, moodStyle]}>
-      {/* Menggunakan penanganan fleksibel untuk gambar lokal (object/number) maupun remote (string) */}
-      <Image 
-        source={typeof moodSource === 'string' ? { uri: moodSource } : moodSource} 
-        style={styles.mood} 
-      />
-      <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={1}>
-          {title}
-        </Text>
-        <Text style={styles.date}>{date}</Text>
-        <Text
-          style={styles.preview}
-          numberOfLines={3}
-          ellipsizeMode="tail"
-        >
-          {preview}
-        </Text>
+    <Pressable
+      onPress={onPress}
+      android_ripple={{ color: COLORS.ripple }}
+      style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
+      accessible={Boolean(onPress)}
+      accessibilityRole="button"
+      accessibilityLabel={`Entri ${title} tanggal ${date}`}
+      accessibilityHint="Ketuk dua kali untuk membuka detail diary"
+    >
+      <View style={[styles.card, isGrid && styles.cardGrid]}>
+        <Image
+          source={{ uri: moodUri }}
+          style={[styles.mood, isGrid && styles.moodGrid]}
+          accessibilityLabel={`Ilustrasi mood untuk ${title}`}
+        />
+
+        <View style={[styles.content, isGrid && styles.contentGrid]}>
+          <Text style={[styles.title, isGrid && styles.centered]} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text style={[styles.date, isGrid && styles.centered]}>{date}</Text>
+          <Text
+            style={[styles.preview, isGrid && styles.centered]}
+            numberOfLines={isGrid ? 2 : 3}
+            ellipsizeMode="tail"
+          >
+            {preview}
+          </Text>
+        </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  pressable: {
+    flex: 1,
+    borderRadius: RADIUS.card,
+  },
+  pressed: {
+    opacity: INTERACTION.pressedOpacity,
+  },
   card: {
     flexDirection: 'row',
-    gap: 12,
-    padding: 12,
-    borderWidth: 2, // Diubah ke 2 agar garis variasi warna terlihat tegas
-    borderRadius: 12,
-    marginBottom: 12,
+    gap: SPACE.m,
+    padding: SPACE.m,
+    borderWidth: SIZE.cardBorderWidth,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.card,
+    backgroundColor: COLORS.surface,
+  },
+  cardGrid: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    minHeight: SIZE.gridCardMinHeight,
   },
   mood: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: SIZE.moodImage,
+    height: SIZE.moodImage,
+    borderRadius: RADIUS.avatar,
+    backgroundColor: COLORS.imageBackground,
+  },
+  moodGrid: {
+    marginBottom: SPACE.s,
   },
   content: {
     flex: 1,
   },
+  contentGrid: {
+    alignItems: 'center',
+  },
   title: {
-    fontSize: 16,
+    fontSize: TYPO.title,
     fontWeight: '700',
-    color: '#1f2937',
+    color: COLORS.text,
   },
   date: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginBottom: 6,
+    fontSize: TYPO.caption,
+    color: COLORS.muted,
+    marginBottom: SPACE.xs,
   },
   preview: {
-    fontSize: 14,
-    color: '#4b5563',
+    fontSize: TYPO.body,
+    color: COLORS.text,
   },
-  // Variasi warna border dan latar belakang berdasarkan mood
-  borderDefault: {
-    borderColor: '#e5e7eb',
-    backgroundColor: '#ffffff',
-  },
-  borderHappy: {
-    borderColor: '#fbbf24', 
-    backgroundColor: '#fffbeb',
-  },
-  borderFocus: {
-    borderColor: '#3b82f6', 
-    backgroundColor: '#eff6ff',
-  },
-  borderCalm: {
-    borderColor: '#10b981', 
-    backgroundColor: '#ecfdf5',
-  },
-  borderSad: {
-    borderColor: '#9ca3af', 
-    backgroundColor: '#f9fafb',
-  },
-  borderExcited: {
-    borderColor: '#ec4899', 
-    backgroundColor: '#fdf2f8',
+  centered: {
+    textAlign: 'center',
   },
 });

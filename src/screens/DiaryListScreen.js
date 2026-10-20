@@ -1,114 +1,143 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  Image,
+  FlatList,
+  useWindowDimensions,
 } from 'react-native';
+
 import DiaryCard from '../components/DiaryCard';
+import DiaryDetailModal from '../components/DiaryDetailModal';
+import { COLORS, SPACE, TYPO, BREAKPOINTS } from '../styles/tokens';
 
-// 1. Memuat Gambar Lokal dari folder assets/moods/
-import happyLocal from '../../assets/moods/happy.png';
-
-// 2. Data array dengan total minimal 5 entri diary
-const diaryEntries = [
+const DATA = [
   {
     id: 1,
     title: 'Pagi yang Tenang',
     date: '2025-10-06',
-    preview: 'Hari ini aku bangun lebih pagi dan berjalan kaki 20 menit. Udara terasa sejuk...',
-    moodSource: happyLocal, // Menggunakan gambar lokal
-    moodType: 'happy',
+    preview: 'Bangun lebih pagi dan menikmati udara segar.',
+    body:
+      'Hari ini aku bangun lebih pagi dan berjalan kaki selama 20 menit. Udara terasa sejuk dan suasana pagi sangat tenang.',
+    moodUri: 'https://picsum.photos/seed/happy/200',
+    heroUri: 'https://picsum.photos/seed/happyhero/800/450',
   },
   {
     id: 2,
     title: 'Produktif di Kampus',
     date: '2025-10-05',
-    preview: 'Menyelesaikan modul praktikum dan berdiskusi dengan tim. Banyak insight baru...',
-    moodSource: 'https://www.shutterstock.com/image-vector/educational-emotions-infographic-kids-features-260nw-2757528317.jpg',
-    moodType: 'focus',
+    preview: 'Menyelesaikan modul praktikum bersama tim.',
+    body:
+      'Hari ini cukup produktif. Saya menyelesaikan modul praktikum dan berdiskusi dengan tim mengenai pengembangan aplikasi.',
+    moodUri: 'https://picsum.photos/seed/focus/200',
+    heroUri: 'https://picsum.photos/seed/focushero/800/450',
   },
   {
     id: 3,
     title: 'Senja di Taman',
     date: '2025-10-04',
-    preview: 'Menikmati senja sambil membaca buku favorit. Warna langit sangat indah...',
-    moodSource: 'https://www.shutterstock.com/image-vector/educational-emotions-infographic-kids-features-260nw-2757528317.jpg',
-    moodType: 'calm',
+    preview: 'Membaca buku sambil menikmati suasana senja.',
+    body:
+      'Sore ini saya menikmati waktu di taman sambil membaca buku. Suasana senja terasa tenang dan menyenangkan.',
+    moodUri: 'https://picsum.photos/seed/calm/200',
+    heroUri: 'https://picsum.photos/seed/calmhero/800/450',
   },
   {
     id: 4,
-    title: 'Menghadapi Error Koding',
+    title: 'Resep Baru',
     date: '2025-10-03',
-    preview: 'Mencoba memperbaiki bug di React Native selama 2 jam. Cukup melelahkan tapi akhirnya teratasi setelah dibantu dokumentasi...',
-    moodSource: 'https://www.shutterstock.com/image-vector/educational-emotions-infographic-kids-features-260nw-2757528317.jpg',
-    moodType: 'sad',
+    preview: 'Mencoba memasak sup sayur untuk makan malam.',
+    body:
+      'Aku mencoba resep sup sayur baru malam ini. Rasanya lebih enak dari perkiraan, dan memasak membuatku rileks setelah hari yang sibuk.',
+    moodUri: 'https://picsum.photos/seed/cooking/200',
+    heroUri: 'https://picsum.photos/seed/cookinghero/800/450',
   },
   {
     id: 5,
-    title: 'Mendapat Kabar Baik!',
+    title: 'Waktu Bersama Keluarga',
     date: '2025-10-02',
-    preview: 'Proposal proyek mandiri disetujui dosen pembimbing laboratorium. Sangat bersemangat melanjutkan pengembangannya!',
-    moodSource: 'https://www.shutterstock.com/image-vector/educational-emotions-infographic-kids-features-260nw-2757528317.jpg',
-    moodType: 'excited',
+    preview: 'Makan malam dan berbagi cerita bersama keluarga.',
+    body:
+      'Kami makan malam bersama dan saling bercerita tentang kegiatan hari ini. Momen sederhana seperti ini membuatku merasa bersyukur.',
+    moodUri: 'https://picsum.photos/seed/family/200',
+    heroUri: 'https://picsum.photos/seed/familyhero/800/450',
   },
 ];
 
 export default function DiaryListScreen() {
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* 3. Menambahkan komponen Avatar Pengguna di samping Judul Header */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.header}>Buku Harian</Text>
-        <Image 
-          source={{ uri: 'https://pravatar.cc' }} // Menggunakan random placeholder avatar
-          style={styles.avatar}
-        />
-      </View>
+  const { width } = useWindowDimensions();
+  const twoCols = width >= BREAKPOINTS.tablet;
+  const [selected, setSelected] = useState(null);
 
-      {/* 4. Perulangan untuk me-render daftar kartu diary */}
-      {diaryEntries.map((entry) => (
-        <DiaryCard
-          key={entry.id}
-          title={entry.title}
-          date={entry.date}
-          preview={entry.preview}
-          moodSource={entry.moodSource}
-          moodType={entry.moodType}
-        />
-      ))}
-    </ScrollView>
+  const renderItem = ({ item }) => (
+    <View style={styles.itemWrap}>
+      <DiaryCard
+        title={item.title}
+        date={item.date}
+        preview={item.preview}
+        moodUri={item.moodUri}
+        variant={twoCols ? 'grid' : 'list'}
+        onPress={() => setSelected(item)}
+      />
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.header} accessibilityRole="header">
+        Buku Harian
+      </Text>
+
+      <FlatList
+        key={twoCols ? 'two-columns' : 'one-column'}
+        data={DATA}
+        numColumns={twoCols ? 2 : 1}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={renderItem}
+        columnWrapperStyle={twoCols ? styles.columnWrapper : undefined}
+        contentContainerStyle={styles.listContent}
+        accessibilityLabel="Daftar entri buku harian"
+        ListEmptyComponent={
+          <Text style={styles.empty}>Belum ada entri.</Text>
+        }
+      />
+
+      <DiaryDetailModal
+        visible={Boolean(selected)}
+        entry={selected}
+        onClose={() => setSelected(null)}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  content: {
-    padding: 16,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    backgroundColor: COLORS.surface,
   },
   header: {
-    fontSize: 24,
+    fontSize: TYPO.h1,
     fontWeight: '700',
-    color: '#111827',
+    paddingHorizontal: SPACE.l,
+    paddingTop: SPACE.l,
+    color: COLORS.text,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1.5,
-    borderColor: '#d1d5db',
+  listContent: {
+    padding: SPACE.l,
+    paddingTop: SPACE.m,
+    gap: SPACE.m,
+    flexGrow: 1,
+  },
+  columnWrapper: {
+    gap: SPACE.m,
+  },
+  itemWrap: {
+    flex: 1,
+  },
+  empty: {
+    textAlign: 'center',
+    color: COLORS.muted,
+    marginTop: SPACE.xxl,
   },
 });
